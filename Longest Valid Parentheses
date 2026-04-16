@@ -1,0 +1,57 @@
+#include <vector>
+#include <string>
+#include <unordered_map>
+
+using namespace std;
+
+class Solution {
+public:
+    vector<int> findSubstring(string s, vector<string>& words) {
+        vector<int> result;
+        if (s.empty() || words.empty()) return result;
+
+        int wordLen = words[0].length();
+        int wordCount = words.size();
+        int totalLen = wordLen * wordCount;
+        
+        if (s.length() < totalLen) return result;
+
+        unordered_map<string, int> wordFreq;
+        for (const string& w : words) wordFreq[w]++;
+
+        // We only need to start the window from indices 0 to wordLen - 1
+        for (int i = 0; i < wordLen; i++) {
+            int left = i, right = i, count = 0;
+            unordered_map<string, int> windowMap;
+
+            while (right + wordLen <= s.length()) {
+                string w = s.substr(right, wordLen);
+                right += wordLen;
+
+                if (wordFreq.count(w)) {
+                    windowMap[w]++;
+                    count++;
+                    
+                    // If we have more of 'w' than needed, slide left until it's valid
+                    while (windowMap[w] > wordFreq[w]) {
+                        string leftWord = s.substr(left, wordLen);
+                        windowMap[leftWord]--;
+                        count--;
+                        left += wordLen;
+                    }
+
+                    // If count matches total words, we found a starting index
+                    if (count == wordCount) {
+                        result.push_back(left);
+                    }
+                } else {
+                    // Not a valid word, reset the window
+                    windowMap.clear();
+                    count = 0;
+                    left = right;
+                }
+            }
+        }
+        return result;
+    }
+};
